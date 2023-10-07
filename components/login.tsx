@@ -14,18 +14,17 @@ export default function Home() {
   const [isInvalid, setIsInvalid] = useState<boolean>(false);
   const [type, setType] = useState<"password" | "text">("password");
 
-  const { data, status } = useSession();
+  const { data: session, status } = useSession();
   if (status === 'loading') return <h1> loading... please wait</h1>;
-  if (status === 'authenticated') {
+  else if (status === 'authenticated') {
     return (
       <div>
-        <h1> hi {data?.user?.name}</h1>
-        <img src={data?.user?.image || ""} alt={data?.user?.name + ' photo'} />
-        <button onClick={() => {signOut}}>sign out</button>
+        <h1> hi {session?.user?.name}</h1>
+        <img src={session?.user?.image || ""} alt={session?.user?.name + ' photo'} />
+        <Button onClick={() => {signOut()}}>sign out</Button>
       </div>
     );
   }
-
 
   const createUser = () => {
     fetch('http://localhost:3000/api/createUser', {
@@ -36,6 +35,7 @@ export default function Home() {
       body: JSON.stringify({
         username: username,
         email: email,
+        password: password,
       }),
     });
   }
@@ -110,7 +110,7 @@ export default function Home() {
       <Button onClick={() => {viewUsers()}} disabled={isInvalid}>
         View All Users
       </Button>
-      <Button onClick={() => signIn('google')}>sign in with google</Button>
+      <Button onClick={() => signIn("google")}>sign in with google</Button>
     </>
   )
 }
