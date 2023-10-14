@@ -16,15 +16,7 @@ export default function Home() {
 
   const { data: session, status } = useSession();
   if (status === 'loading') return <h1> loading... please wait</h1>;
-  else if (status === 'authenticated') {
-    return (
-      <div>
-        <h1> hi {session?.user?.name}</h1>
-        <img src={session?.user?.image || ""} alt={session?.user?.name + ' photo'} />
-        <Button onClick={() => {signOut()}}>sign out</Button>
-      </div>
-    );
-  }
+ 
 
   const createUser = () => {
     fetch('http://localhost:3000/api/createUser', {
