@@ -1,16 +1,20 @@
 "use client";
 
-import Login from "../components/login";
-import Providers from "../components/providers";
-import Schedule from "../components/schedule";
-import Profile from "../components/profile";
+import Account from "./account";
+import Providers from "./providers";
+import Schedule from "./schedule";
+import Profile from "./profile";
+import Navbar from "./navbar";
+
+import { Box } from "@mui/material";
 
 export default function App() {
     return (
         <Providers>
-            <Login/>
-            <Schedule/>
-            <Profile/>
+            <Navbar/>
+            <Box>
+                Welcome to is
+            </Box>
         </Providers>
     );
 }

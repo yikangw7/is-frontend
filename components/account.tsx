@@ -1,11 +1,11 @@
 "use client";
 
 import * as React from 'react';
-import { Button, TextField } from '@mui/material';
+import { Button, TextField, Box } from '@mui/material';
 import { useState, ChangeEvent } from 'react';
 import { useSession, signIn, signOut } from 'next-auth/react';
 
-export default function Home() {
+export default function Account() {
   const [username, setUsername] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -78,31 +78,44 @@ export default function Home() {
   }
 
   return (
-    <>
+    <Box>
       <head>
         <script src="https://apis.google.com/js/platform.js" async defer></script>
       </head>
-      <div>Welcome!</div>
-      <br/>
-      <TextField label="Username" onChange={handleUsernameChange} value={username}/>
-      <TextField label="Email" onChange={handleEmailChange} value={email}/>
-      <TextField label="Password" type={type} onChange={handlePasswordChange} value={password}/>
-      <Button onClick={() => {type === "password" ? setType("text") : setType("password")}}>
-        S
-      </Button>
-      <Button onClick={() => {createUser()}} disabled={isInvalid}>
-        Create Account
-      </Button>
+      {status != "authenticated" && 
+        <Box>
+          <div>Welcome! Please sign in with Google</div>
+          <Button onClick={() => signIn("google")}>sign in with google</Button>
+        </Box>
+      }
 
-      <div>Admin Tools</div>
-      <TextField label="Username" onChange={handleUIDChange} value={userDelete}/>
-      <Button onClick={() => {deleteUser()}} disabled={isInvalid}>
-        Delete User
-      </Button>
-      <Button onClick={() => {viewUsers()}} disabled={isInvalid}>
-        View All Users
-      </Button>
-      <Button onClick={() => signIn("google")}>sign in with google</Button>
-    </>
+      {/*
+        <Box>
+          <TextField label="Username" onChange={handleUsernameChange} value={username}/>
+          <TextField label="Email" onChange={handleEmailChange} value={email}/>
+          <TextField label="Password" type={type} onChange={handlePasswordChange} value={password}/>
+          <Button onClick={() => {type === "password" ? setType("text") : setType("password")}}>
+            S
+          </Button>
+          <Button onClick={() => {createUser()}} disabled={isInvalid}>
+            Create Account
+          </Button>
+          <div>Admin Tools</div>
+          <TextField label="Username" onChange={handleUIDChange} value={userDelete}/>
+          <Button onClick={() => {deleteUser()}} disabled={isInvalid}>
+            Delete User
+          </Button>
+          <Button onClick={() => {viewUsers()}} disabled={isInvalid}>
+            View All Users
+          </Button>
+        </Box>
+      */}
+      {status === "authenticated" && 
+        <Box>
+          <h1>You are currently logged in as: {session?.user?.name}</h1>
+          <Button onClick={() => {signOut()}}>sign out</Button>
+        </Box>
+      } 
+    </Box>
   )
 }
