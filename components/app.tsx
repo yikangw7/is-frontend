@@ -289,6 +289,20 @@ export default function App() {
                     </Grid>
                 </Grid>
             </Box>
+            <Box
+                display="flex"
+                justifyContent="center"
+                alignItems="center"
+            >
+                <p>{"Todo: Add goalie stat page support, add games"}</p>
+            </Box>
+            <Box
+                display="flex"
+                justifyContent="center"
+                alignItems="center"
+            >
+                <p>{"All logos are the trademark & property of their owners and are presented here for educational purposes. Data is taken directly from the National Hockey League."}</p>
+            </Box>
         </Providers>
     );
 }

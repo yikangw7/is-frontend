@@ -381,12 +381,14 @@ const Profile = () => {
     }
 
     const toTimeOnIce = (timeString: string, games: number) => {
-        const [minutes, seconds] = timeString.split(':').map(Number);
-        const timeInSeconds = (minutes * 60 + seconds) / games;
-        const minutesPerGame = Math.floor(timeInSeconds / 60);
-        const secondsPerGame = timeInSeconds % 60;
-        console.log(`${minutesPerGame}:${secondsPerGame.toString().padStart(2, '0')}`);
-        return `${minutesPerGame}:${Math.round(secondsPerGame).toString().padStart(2, '0')}`;
+        if (timeString) {
+            const [minutes, seconds] = timeString.split(':').map(Number);
+            const timeInSeconds = (minutes * 60 + seconds) / games;
+            const minutesPerGame = Math.floor(timeInSeconds / 60);
+            const secondsPerGame = timeInSeconds % 60;
+            console.log(`${minutesPerGame}:${secondsPerGame.toString().padStart(2, '0')}`);
+            return `${minutesPerGame}:${Math.round(secondsPerGame).toString().padStart(2, '0')}`;
+        }
     }
 
     const prepareDataForDataGrid = (rows: any, row2Data: any) => {
@@ -408,7 +410,7 @@ const Profile = () => {
                     ppp: rowData.stat.powerPlayPoints || 0,
                     shg: rowData.stat.shortHandedGoals || 0,
                     shp: rowData.stat.shortHandedPoints || 0,
-                    toig: toTimeOnIce(rowData.stat.timeOnIce,  parseInt(rowData.stat.games)) || 0,
+                    toig: rowData.stat.timeOnIce ? toTimeOnIce(rowData.stat.timeOnIce,  parseInt(rowData.stat.games)) : "-",
                     gwg: rowData.stat.gameWinningGoals || 0,
                     otg: rowData.stat.overTimeGoals || 0,
                     shots: rowData.stat.shots,
