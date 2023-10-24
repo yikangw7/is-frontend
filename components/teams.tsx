@@ -50,7 +50,7 @@ const Teams = () => {
         {
             field: 'name',
             headerName: 'Name',
-            width: 200,
+            width: 300,
             renderCell: (params) => (
                 <Button onClick={() => {
                     router.push({
@@ -116,7 +116,7 @@ const Teams = () => {
             width: 60,
         },
         {
-            field: 'toipg',
+            field: 'toig',
             headerName: 'TOI/G',
             width: 100,
         },
@@ -401,6 +401,15 @@ const Teams = () => {
         }
     }
 
+    const toTimeOnIce = (timeString: string, games: number) => {
+        const [minutes, seconds] = timeString.split(':').map(Number);
+        const timeInSeconds = (minutes * 60 + seconds) / games;
+        const minutesPerGame = Math.floor(timeInSeconds / 60);
+        const secondsPerGame = timeInSeconds % 60;
+        console.log(`${minutesPerGame}:${secondsPerGame.toString().padStart(2, '0')}`);
+        return `${minutesPerGame}:${Math.round(secondsPerGame).toString().padStart(2, '0')}`;
+    }
+
     const prepareDataForDataGrid = (rows: any) => {
         let newRows: any[] = [];
         rows.map(async (rowData: any) => {
@@ -443,12 +452,12 @@ const Teams = () => {
                     ppp: seasonStats.stats[0].splits[0].stat.powerPlayPoints || "0",
                     shg: seasonStats.stats[0].splits[0].stat.shortHandedGoals || "0",
                     shp: seasonStats.stats[0].splits[0].stat.shortHandedPoints || "0",
-                    toig: "" || "0",
+                    toig: toTimeOnIce(seasonStats.stats[0].splits[0].stat.timeOnIce, parseInt(seasonStats.stats[0].splits[0].stat.games)) || 0,
                     gwg: seasonStats.stats[0].splits[0].stat.gameWinningGoals || "0",
                     otg: seasonStats.stats[0].splits[0].stat.overTimeGoals || "0",
-                    shots: seasonStats.stats[0].splits[0].stat.shots  || "0",
-                    shotPercent: "" || "0",
-                    faceoffs: "" || "0",
+                    shots: seasonStats.stats[0].splits[0].stat.shots || "0",
+                    shotPercent: seasonStats.stats[0].splits[0].stat.shots === 0 ? 0 : (seasonStats.stats[0].splits[0].stat.goals / seasonStats.stats[0].splits[0].stat.shots * 100).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) || 0,
+                    faceoffs: seasonStats.stats[0].splits[0].stat.faceOffPct || 0,
                 }
                 newRows = JSON.parse(JSON.stringify(newRows));
                 newRows.push(singleRow);

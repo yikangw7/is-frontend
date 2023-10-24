@@ -84,7 +84,7 @@ export default function App() {
                                         <GroupsIcon />
                                     </Grid>
                                 </Grid>
-                                <p>In development - Explore the complete rosters, stats, and more of all NHL teams this season!</p>
+                                <p>Explore the complete rosters, stats, and more of all NHL teams this season, as well as up-to-date standings.</p>
                             </Box>
                         </Link>
                     </Grid>
