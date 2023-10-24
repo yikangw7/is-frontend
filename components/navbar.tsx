@@ -19,15 +19,17 @@ const { data: session, status } = useSession();
     <AppBar position="static">
       <Toolbar style={{ backgroundColor: "#303030"}}>
         <Typography variant="h6" style={{ flexGrow: 1 }}>
-            <Box
-                component="img"
-                sx={{
-                    height: 35,
-                    width: 208,
-                }}
-                src={"https://cdn.discordapp.com/attachments/566250791707344896/1164080061461303348/logo.png?ex=6541e90a&is=652f740a&hm=bc6fef09733255bf2d0f87f5a554364bde75068f61719831ba6becbc8243a55b&"}
-                alt={"is"}
-            />
+            <Link href="/">
+                <Box
+                    component="img"
+                    sx={{
+                        height: 35,
+                        width: 208,
+                    }}
+                    src={"https://cdn.discordapp.com/attachments/566250791707344896/1164080061461303348/logo.png?ex=6541e90a&is=652f740a&hm=bc6fef09733255bf2d0f87f5a554364bde75068f61719831ba6becbc8243a55b&"}
+                    alt={"is"}
+                />
+            </Link>
         </Typography>
         <Link href="/">
             <Button color="inherit">Home</Button>
@@ -37,6 +39,9 @@ const { data: session, status } = useSession();
         </Link>
         <Link href="/teams">
             <Button color="inherit">Teams</Button>
+        </Link>
+        <Link href="/games">
+            <Button color="inherit">Games</Button>
         </Link>
         {status != 'authenticated' &&
             <Link href="/account">

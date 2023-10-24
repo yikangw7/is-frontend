@@ -15,6 +15,7 @@ import Loading from "./loading";
 import "../app/globals.css";
 
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/router';
 
 const columns: GridColDef[] = [
     {
@@ -136,6 +137,9 @@ const Profile = () => {
 
     const { data: session, status } = useSession();
 
+    const router = useRouter();
+    const playerProp = router.query;
+
     useEffect(() => {
         if (currentPlayer) {
             setIsLoading(true);
@@ -252,6 +256,16 @@ const Profile = () => {
         console.log(playerList);
     }, []);
 
+    // Initialize page if player query is given
+    useEffect(() => {
+        if (playerProp.playerName) {
+            if (masterList) searchList(playerProp.playerName as string);
+        }
+        else {
+            setCurrentPlayer(null);
+        }
+    }, [playerProp, masterList])
+
     // Initialize User's Favourites
     useEffect(() => { 
         const fetchData = async () => {
@@ -298,6 +312,10 @@ const Profile = () => {
         if (event.keyCode === 13) {
             setIsLoading(true);
             if (matchedSuggestions) {
+                router.push({
+                    pathname: '/players',
+                    query: { playerName: matchedSuggestions[0].fullName },
+                });
                 setCurrentPlayer(matchedSuggestions[0]);
                 setSearchTerm("");
                 setMatchedSuggestions([]);
@@ -308,7 +326,7 @@ const Profile = () => {
             }
             setIsLoading(false);
         }
-      };
+    };
 
     const handleCheckboxChange = (event : ChangeEvent<HTMLInputElement>) => {
         setExtraData(event.target.checked);
@@ -432,17 +450,22 @@ const Profile = () => {
             const singleDisplay = (
                 <Grid container>
                     <Grid item xs={2}>
-                    <Box
-                        component="img"
-                        sx={{
-                            height: 40,
-                            width: 40,
-                        }}
-                        src={"http://nhl.bamcontent.com/images/headshots/current/168x168/" + player.id + ".jpg"}
-                    />
+                        <Box
+                            component="img"
+                            sx={{
+                                height: 40,
+                                width: 40,
+                            }}
+                            src={"http://nhl.bamcontent.com/images/headshots/current/168x168/" + player.id + ".jpg"}
+                        />
                     </Grid>
                     <Grid item xs={10}>
-                        <Button onClick={() => {setCurrentPlayer(player)}}>{player.fullName + "\n"}</Button>
+                        <Button onClick={() => {
+                            router.push({
+                                pathname: '/players',
+                                query: { playerName: player.fullName },
+                            });
+                        }}>{player.fullName + "\n"}</Button>
                         {player.sweaterNumber}
                     </Grid>
                 </Grid>
