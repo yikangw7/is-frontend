@@ -219,7 +219,7 @@ export default function App() {
                             borderRadius="10px"
                             p={2}
                         >
-                            <h1>Top 5 Defenders - 2023</h1>
+                            <h1>Top 5 Defenseman - 2023</h1>
                             <Grid container>
                                 <Grid item xs={2}>
                                     {topDefenders.map((defender: any) => {

@@ -19,3 +19,7 @@
 body {
   color: #1E1E1E;
 }
+
+.data-grid-container .MuiDataGrid-footerContainer {
+  display: none;
+}

@@ -26,7 +26,7 @@ const columns: GridColDef[] = [
     {
         field: 'team',
         headerName: 'Team',
-        width: 150,
+        width: 200,
     },
     {
         field: 'league',
@@ -534,7 +534,7 @@ const Profile = () => {
                 {currentPlayer && 
                     <Grid container spacing={2}>
                         <Grid item xs={10}>
-                            <Box>
+                            <Box className="data-grid-container">
                                 <Grid container spacing={2}>
                                     <Grid item xs={1}>
                                         <Box
@@ -549,9 +549,31 @@ const Profile = () => {
                                         {currentPlayer.fullName + "\n"}
                                     </Grid>
                                     <Grid item xs={4}>
-                                        <Typography>
-                                            {(!currentTeam ? "No Team" : currentTeam.name) + " #" + currentPlayer.sweaterNumber}
-                                        </Typography>
+                                        {currentPlayer.sweaterNumber ? (!currentTeam ? "No Team" : 
+                                            <Typography>
+                                                <Button onClick={()=>{
+                                                    router.push({
+                                                        pathname: '/teams',
+                                                        query: { team: currentTeam.name },
+                                                    });
+                                                }}>
+                                                    {currentTeam.name}
+                                                </Button> 
+                                                {" #" + currentPlayer.sweaterNumber}
+                                            </Typography>) :
+                                                (!currentTeam ? "No Team" : 
+                                            <Typography>
+                                                <Button onClick={()=>{
+                                                    router.push({
+                                                        pathname: '/teams',
+                                                        query: { team: currentTeam.name },
+                                                    });
+                                                }}>
+                                                    {currentTeam.name}
+                                                </Button> 
+                                                {" #" + currentPlayer.sweaterNumber}
+                                            </Typography>)
+                                        }
                                         <Typography>
                                             {"Height: " + Math.floor(currentPlayer.height / 12) + "'" + currentPlayer.height % 12}
                                         </Typography>
@@ -559,7 +581,10 @@ const Profile = () => {
                                             {"Weight: " + currentPlayer.weight + "lbs"}
                                         </Typography>
                                         <Typography>
-                                            {currentPlayer.birthCity + ", " + currentPlayer.birthStateProvince + " - " + currentPlayer.birthCountry}
+                                            {currentPlayer.birthStateProvince ? 
+                                                currentPlayer.birthCity + ", " + currentPlayer.birthStateProvince + " - " + currentPlayer.birthCountry :
+                                                currentPlayer.birthCity + " - " + currentPlayer.birthCountry
+                                            }
                                         </Typography>
                                         <Typography>
                                             {"Born " + currentPlayer.birthDate}
