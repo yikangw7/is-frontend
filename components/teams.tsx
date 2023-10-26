@@ -879,7 +879,7 @@ const Teams = () => {
                             :
                                 <Box>
                                     <Box>
-                                        {currentRoster && rosterStats && rows && goalieRows &&
+                                        {currentRoster && rosterStats && rows && defenseRows && goalieRows &&
                                             <Box className="data-grid-container">
                                                 <Grid container>
                                                     <Grid item xs={1}>
