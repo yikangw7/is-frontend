@@ -294,7 +294,7 @@ export default function App() {
                 justifyContent="center"
                 alignItems="center"
             >
-                <p>{"Todo: Add goalie stat page support, add games"}</p>
+                <p>{"Todo: Add goalie stat page support, add games, add awards display"}</p>
             </Box>
             <Box
                 display="flex"

@@ -115,6 +115,74 @@ const columns: GridColDef[] = [
     },
 ]
 
+const columns2: GridColDef[] = [
+    {
+        field: 'season',
+        headerName: 'Season',
+        width: 150,
+    },
+    {
+        field: 'team',
+        headerName: 'Team',
+        width: 200,
+    },
+    {
+        field: 'league',
+        headerName: 'League',
+        width: 100,
+    },
+    {
+        field: 'games',
+        headerName: 'GP',
+        width: 60,
+    },
+    {
+        field: 'gamesStarted',
+        headerName: 'GS',
+        width: 60,
+    },
+    {
+        field: 'wins',
+        headerName: 'W',
+        width: 60,
+    },
+    {
+        field: 'losses',
+        headerName: 'P',
+        width: 60,
+    },
+    {
+        field: 'ot',
+        headerName: 'OT',
+        width: 60,
+    },
+    {
+        field: 'shotsAgainst',
+        headerName: 'SA',
+        width: 60,
+    },
+    {
+        field: 'gaa',
+        headerName: 'GAA',
+        width: 60,
+    },
+    {
+        field: 'svp',
+        headerName: 'SV%',
+        width: 100,
+    },
+    {
+        field: 'shutouts',
+        headerName: 'SO',
+        width: 60,
+    },
+    {
+        field: 'toi',
+        headerName: 'TOI',
+        width: 100,
+    },
+]
+
 const Profile = () => {
     // Search States
     const [searchTerm, setSearchTerm] = useState<string>("");
@@ -125,6 +193,7 @@ const Profile = () => {
     const [masterList, setMasterList] = useState<any>(null);
     const [currentTeam, setCurrentTeam] = useState<any>(null);
     const [favourites, setFavourites] = useState<any>(null);
+    const [isGoalie, setIsGoalie] = useState<boolean>(false);
 
     // Checkbox State Variables
     const [extraData, setExtraData] = useState<boolean>(false);
@@ -193,8 +262,20 @@ const Profile = () => {
                     })
                     .then((data2) => {
                         setRow2Data(data2.stats[0].splits[0]);
-                        console.log("Row2Data: " + data2.stats[0].splits[0]);
-                        setRowData(prepareDataForDataGrid(data.stats[0].splits, data2.stats[0].splits[0]));
+                        console.log("TSETES");
+                        console.log(data.stats[0].splits);
+                        if (data.stats[0].splits[0].stat?.savePercentage ||
+                            data.stats[0].splits[0].stat?.goalsAgainstAverage ||
+                            data.stats[0].splits[0].stat?.goalsAgainst ||
+                            data.stats[0].splits[0].stat?.shotsAgainst) {
+                            
+                            setIsGoalie(true);
+                            setRowData(prepareGoalieForDataGrid(data.stats[0].splits, data2.stats[0].splits[0]));
+                        }
+                        else {
+                            setIsGoalie(false);
+                            setRowData(prepareDataForDataGrid(data.stats[0].splits, data2.stats[0].splits[0]));
+                        }
                     });
             });
 
@@ -389,6 +470,7 @@ const Profile = () => {
             console.log(`${minutesPerGame}:${secondsPerGame.toString().padStart(2, '0')}`);
             return `${minutesPerGame}:${Math.round(secondsPerGame).toString().padStart(2, '0')}`;
         }
+        else return "-";
     }
 
     const prepareDataForDataGrid = (rows: any, row2Data: any) => {
@@ -441,6 +523,49 @@ const Profile = () => {
             shots: row2Data?.stat?.shots || 0,
             shotPercent: (row2Data?.stat?.goals / row2Data?.stat?.shots * 100).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) || 0,
             faceoffs: row2Data?.stat?.faceOffPct || 0,
+        }
+        newRows.push(careerTotals);
+        return newRows;
+    }
+
+    const prepareGoalieForDataGrid = (rows: any, row2Data: any) => {
+        const newRows: any[] = [];
+        rows.map((rowData: any) => {
+            if (extraData || !rowData.league || rowData.league.name === "National Hockey League") {
+                let singleRow = {
+                    id: rowData.season,
+                    season: rowData.season.substring(0, 4) + " - " + rowData.season.substring(4, 8),
+                    team: rowData.team.name,
+                    league: rowData.league.name === "National Hockey League" ? "NHL" : rowData.league.name,
+                    games: rowData.stat.games || 0,
+                    gamesStarted: rowData.stat.gamesStarted || 0,
+                    wins: rowData.stat.wins || 0,
+                    losses: rowData.stat.losses || 0,
+                    ot: rowData.stat.ot || 0,
+                    shotsAgainst: rowData.stat.shotsAgainst || 0,
+                    gaa: rowData.stat.goalsAgainstAverage || 0,
+                    svp: rowData.stat.savePercentage.toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 4 }) || 0,
+                    shutouts: rowData.stat.shutouts || 0,
+                    toi: rowData.stat.timeOnIce || 0,
+                }
+                newRows.push(singleRow);
+            }
+        })
+        let careerTotals = {
+            id: "Career Totals",
+            season: "Career Totals",
+            team: "TOT",
+            league: "NHL",
+            games: row2Data.stat.games || 0,
+            gamesStarted: row2Data.stat.gamesStarted || 0,
+            wins: row2Data.stat.wins || 0,
+            losses: row2Data.stat.losses || 0,
+            ot: row2Data.stat.ot || 0,
+            shotsAgainst: row2Data.stat.shotsAgainst || 0,
+            gaa: row2Data.stat.goalsAgainstAverage || 0,
+            svp: row2Data.stat.savePercentage.toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 4 }) || 0,
+            shutouts: row2Data.stat.shutouts || 0,
+            toi: row2Data.stat.timeOnIce || 0,
         }
         newRows.push(careerTotals);
         return newRows;
@@ -558,6 +683,7 @@ const Profile = () => {
                                             src={"http://nhl.bamcontent.com/images/headshots/current/168x168/" + currentPlayer.id + ".jpg"}
                                         />
                                         {currentPlayer.fullName + "\n"}
+                                        {isGoalie && "Goaltender"}
                                     </Grid>
                                     <Grid item xs={4}>
                                         {currentPlayer.sweaterNumber ? (!currentTeam ? "No Team" : 
@@ -621,7 +747,7 @@ const Profile = () => {
                                 {rowData &&
                                     <DataGrid
                                         rows={rowData}
-                                        columns={columns}
+                                        columns={isGoalie ? columns2 : columns}
                                     />
                                 }
                             </Box>
