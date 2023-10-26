@@ -78,15 +78,27 @@ export default function Account() {
   }
 
   return (
-    <Box>
+    <Box style={{ padding: "25px" }}>
       <head>
         <script src="https://apis.google.com/js/platform.js" async defer></script>
       </head>
       {status != "authenticated" && 
-        <Box>
-          <div>Welcome! Please sign in with Google</div>
-          <Button onClick={() => signIn("google")}>sign in with google</Button>
-        </Box>
+        <>
+          <Box 
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+          >
+            <div>Welcome! Please sign in with Google</div>
+          </Box>
+          <Box
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+          >
+            <Button onClick={() => signIn("google")}>Sign In With Google</Button>
+          </Box>
+        </>
       }
 
       {/*
@@ -111,10 +123,22 @@ export default function Account() {
         </Box>
       */}
       {status === "authenticated" && 
-        <Box>
-          <h1>You are currently logged in as: {session?.user?.name}</h1>
-          <Button onClick={() => {signOut()}}>sign out</Button>
-        </Box>
+        <>
+          <Box
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+          >
+            <h1>You are currently logged in as: {session?.user?.name}</h1>
+          </Box>
+          <Box
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+          >
+            <Button onClick={() => {signOut()}}>Sign Out</Button>
+          </Box>
+        </>
       } 
     </Box>
   )

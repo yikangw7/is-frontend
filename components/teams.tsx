@@ -617,7 +617,7 @@ const Teams = () => {
                 id: rowData.team.id,
                 rank: parseInt(standingsType === 0 ? rowData.divisionRank : (standingsType === 1 ? rowData.conferenceRank : rowData.leagueRank)),
                 name: rowData.team.name,
-                games: rowData.gamesPlayed,
+                games: parseInt(rowData.gamesPlayed),
                 wins: rowData.leagueRecord.wins,
                 losses: rowData.leagueRecord.losses,
                 ot: rowData.leagueRecord.ot,
@@ -641,7 +641,7 @@ const Teams = () => {
     const standingsDisplay = () => {
         return (
             <>
-                <Box style={{ padding: "25px" }}
+                <Box style={{ paddingBottom: "25px" }}
                     display="flex"
                     justifyContent="center"
                     alignItems="center"
@@ -856,7 +856,7 @@ const Teams = () => {
                         <>
                             {!currentTeam ? 
                                 <Box>
-                                    <Box style={{ padding: "25px" }}
+                                    <Box style={{ paddingBottom: "25px" }}
                                         display="flex"
                                         justifyContent="center"
                                         alignItems="center"
@@ -969,7 +969,7 @@ const Teams = () => {
                                                         });
                                                     }}
                                                     sortModel={[{
-                                                        field: "points",
+                                                        field: "games",
                                                         sort: "desc",
                                                     }]}
                                                 />
