@@ -103,7 +103,7 @@ const Profile = () => {
                             data.stats[0].splits[0].stat?.goalsAgainstAverage ||
                             data.stats[0].splits[0].stat?.goalsAgainst ||
                             data.stats[0].splits[0].stat?.shotsAgainst ||
-                            ! data.stats[0].splits[0].stat?.goals) {
+                            !data.stats[0].splits[0].stat?.points) {
                             
                             setIsGoalie(true);
                             setRowData(prepareGoalieForDataGrid(data.stats[0].splits, data2.stats[0].splits[0]));
@@ -353,7 +353,7 @@ const Profile = () => {
             ppp: row2Data?.stat?.powerPlayPoints || 0,
             shg: row2Data?.stat?.shortHandedGoals || 0,
             shp: row2Data?.stat?.shortHandedPoints || 0,
-            toig: toTimeOnIce(row2Data?.stat?.timeOnIce,  parseInt(row2Data.stat.games)) || 0,
+            toig: toTimeOnIce(row2Data?.stat?.timeOnIce,  parseInt(row2Data?.stat?.games)) || 0,
             gwg: row2Data?.stat?.gameWinningGoals || 0,
             otg: row2Data?.stat?.overTimeGoals || 0,
             shots: row2Data?.stat?.shots || 0,
