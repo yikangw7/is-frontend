@@ -130,7 +130,7 @@ export const columns2: GridColDef[] = [
     },
     {
         field: 'losses',
-        headerName: 'P',
+        headerName: 'L',
         width: 60,
     },
     {

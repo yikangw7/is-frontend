@@ -28,6 +28,8 @@ const Teams = () => {
     const [sortedStandings, setSortedStandings] = useState<any>(null);
 
     const [rows, setRows] = useState<any>(null);
+    const [defenseRows, setDefenseRows] = useState<any>(null);
+    const [goalieRows, setGoalieRows] = useState<any>(null);
 
     const router = useRouter();
     const teamProp = router.query;
@@ -144,6 +146,90 @@ const Teams = () => {
             field: 'faceoffs',
             headerName: 'FO%',
             width: 60,
+        },
+    ]
+
+    const columns2: GridColDef[] = [
+        {
+            field: 'imageUrl',
+            headerName: '',
+            width: 50,
+            renderCell: (params) => (
+                <img src={params.row.imageUrl} style={{ width: '100%', height: 'auto' }} />
+            ),
+        },
+        {
+            field: 'jerseyNumber',
+            headerName: '#',
+            width: 50,
+        },
+        {
+            field: 'name',
+            headerName: 'Name',
+            width: 300,
+            renderCell: (params) => (
+                <Button onClick={() => {
+                    router.push({
+                        pathname: '/players',
+                        query: { playerName: params.row.name },
+                    });
+                }}>{params.row.name}</Button>
+            ),
+        },
+        {
+            field: 'position',
+            headerName: 'Position',
+            width: 100,
+        },
+        {
+            field: 'games',
+            headerName: 'GP',
+            width: 60,
+        },
+        {
+            field: 'gamesStarted',
+            headerName: 'GS',
+            width: 60,
+        },
+        {
+            field: 'wins',
+            headerName: 'W',
+            width: 60,
+        },
+        {
+            field: 'losses',
+            headerName: 'L',
+            width: 60,
+        },
+        {
+            field: 'ot',
+            headerName: 'OT',
+            width: 60,
+        },
+        {
+            field: 'shotsAgainst',
+            headerName: 'SA',
+            width: 60,
+        },
+        {
+            field: 'gaa',
+            headerName: 'GAA',
+            width: 60,
+        },
+        {
+            field: 'svp',
+            headerName: 'SV%',
+            width: 100,
+        },
+        {
+            field: 'shutouts',
+            headerName: 'SO',
+            width: 60,
+        },
+        {
+            field: 'toi',
+            headerName: 'TOI',
+            width: 100,
         },
     ]
 
@@ -373,7 +459,11 @@ const Teams = () => {
     }, [currentRoster])
 
     useEffect(() => {
-        if(currentRoster) prepareDataForDataGrid(currentRoster.teams[0].roster.roster);
+        if(currentRoster) {
+            prepareDataForDataGrid(currentRoster.teams[0].roster.roster, "F");
+            prepareDataForDataGrid(currentRoster.teams[0].roster.roster, "D");
+            prepareGoalieForDataGrid(currentRoster.teams[0].roster.roster);
+        }
     }, [rosterStats]);
 
     // Initialize page if team query is given
@@ -410,7 +500,7 @@ const Teams = () => {
         return `${minutesPerGame}:${Math.round(secondsPerGame).toString().padStart(2, '0')}`;
     }
 
-    const prepareDataForDataGrid = (rows: any) => {
+    const prepareDataForDataGrid = (rows: any, playerType: string) => {
         let newRows: any[] = [];
         rows.map(async (rowData: any) => {
             let seasonStats: any;
@@ -435,7 +525,7 @@ const Teams = () => {
             } catch (error) {
                 console.error('Error reading the JSON file:', error);
             }
-            if (seasonStats.stats[0].splits[0]) {
+            if (seasonStats.stats[0].splits[0] && ((playerType === "F" && rowData.position.abbreviation != "D" && rowData.position.abbreviation != "G") || playerType === rowData.position.abbreviation)) {
                 let singleRow = {
                     id: rowData.person.id,
                     imageUrl: "http://nhl.bamcontent.com/images/headshots/current/168x168/" + rowData.person.id + ".jpg",
@@ -461,7 +551,60 @@ const Teams = () => {
                 }
                 newRows = JSON.parse(JSON.stringify(newRows));
                 newRows.push(singleRow);
-                setRows(newRows);
+                if (playerType === "F") setRows(newRows);
+                else setDefenseRows(newRows);
+            }
+            
+        })
+    }
+
+    const prepareGoalieForDataGrid = (rows: any) => {
+        let newRows: any[] = [];
+        rows.map(async (rowData: any) => {
+            let seasonStats: any;
+            try {
+                const response = await fetch('https://statsapi.web.nhl.com/api/v1/people/' + rowData.person.id + '/stats?stats=statsSingleSeason&season=20232024');
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch: ${response.status} - ${response.statusText}`);
+                }     
+                // Create a ReadableStream from the response body
+                const reader = response.body?.getReader();
+                let chunk;
+                let result = '';
+              
+                while (true) {
+                    chunk = await reader?.read();
+                    if (chunk?.done) {
+                        break;
+                    }
+                    result += new TextDecoder('utf-8').decode(chunk?.value);
+                }
+                seasonStats = JSON.parse(result);
+            } catch (error) {
+                console.error('Error reading the JSON file:', error);
+            }
+            if (seasonStats.stats[0].splits[0] && rowData.position.abbreviation === "G") {
+                console.log(rowData);
+                let singleRow = {
+                    id: rowData.person.id,
+                    imageUrl: "http://nhl.bamcontent.com/images/headshots/current/168x168/" + rowData.person.id + ".jpg",
+                    jerseyNumber: parseInt(rowData.jerseyNumber),
+                    name: rowData.person.fullName,
+                    position: rowData.position.abbreviation,
+                    games: seasonStats.stats[0].splits[0].stat.games || 0,
+                    gamesStarted: seasonStats.stats[0].splits[0].gamesStarted || 0,
+                    wins: seasonStats.stats[0].splits[0].stat.wins || 0,
+                    losses: seasonStats.stats[0].splits[0].stat.losses || 0,
+                    ot: seasonStats.stats[0].splits[0].stat.ot || 0,
+                    shotsAgainst: seasonStats.stats[0].splits[0].stat.shotsAgainst || 0,
+                    gaa: seasonStats.stats[0].splits[0].stat.goalsAgainstAverage || 0,
+                    svp: seasonStats.stats[0].splits[0].stat.savePercentage.toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 4 }) || 0,
+                    shutouts: seasonStats.stats[0].splits[0].stat.shutouts || 0,
+                    toi: seasonStats.stats[0].splits[0].stat.timeOnIce || 0,
+                }
+                newRows = JSON.parse(JSON.stringify(newRows));
+                newRows.push(singleRow);
+                setGoalieRows(newRows);
             }
             
         })
@@ -736,7 +879,7 @@ const Teams = () => {
                             :
                                 <Box>
                                     <Box>
-                                        {currentRoster && rosterStats && rows &&
+                                        {currentRoster && rosterStats && rows && goalieRows &&
                                             <Box className="data-grid-container">
                                                 <Grid container>
                                                     <Grid item xs={1}>
@@ -779,9 +922,46 @@ const Teams = () => {
                                                         </Button> 
                                                     </Grid>
                                                 </Grid>
+
+                                                <br/>
+                                                <h1>Forwards</h1>
                                                 <DataGrid
                                                     rows={rows}
                                                     columns={columns}
+                                                    onRowClick={(params) => {
+                                                        router.push({
+                                                            pathname: '/players',
+                                                            query: { playerName: params.row.name },
+                                                        });
+                                                    }}
+                                                    sortModel={[{
+                                                        field: "points",
+                                                        sort: "desc",
+                                                    }]}
+                                                />
+
+                                                <br/>
+                                                <h1>Defensemen</h1>
+                                                <DataGrid
+                                                    rows={defenseRows}
+                                                    columns={columns}
+                                                    onRowClick={(params) => {
+                                                        router.push({
+                                                            pathname: '/players',
+                                                            query: { playerName: params.row.name },
+                                                        });
+                                                    }}
+                                                    sortModel={[{
+                                                        field: "points",
+                                                        sort: "desc",
+                                                    }]}
+                                                />
+                                                
+                                                <br/>
+                                                <h1>Goaltenders</h1>
+                                                <DataGrid
+                                                    rows={goalieRows}
+                                                    columns={columns2}
                                                     onRowClick={(params) => {
                                                         router.push({
                                                             pathname: '/players',
