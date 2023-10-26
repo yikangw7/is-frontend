@@ -212,9 +212,14 @@ const Teams = () => {
             width: 60,
         },
         {
+            field: 'ga',
+            headerName: 'GA',
+            width: 60,
+        },
+        {
             field: 'gaa',
             headerName: 'GAA',
-            width: 60,
+            width: 80,
         },
         {
             field: 'svp',
@@ -251,7 +256,7 @@ const Teams = () => {
         {
             field: 'rank',
             headerName: 'Rank',
-            width: 75,
+            width: 100,
         },
         {
             field: 'name',
@@ -597,7 +602,8 @@ const Teams = () => {
                     losses: seasonStats.stats[0].splits[0].stat.losses || 0,
                     ot: seasonStats.stats[0].splits[0].stat.ot || 0,
                     shotsAgainst: seasonStats.stats[0].splits[0].stat.shotsAgainst || 0,
-                    gaa: seasonStats.stats[0].splits[0].stat.goalsAgainstAverage || 0,
+                    ga: seasonStats.stats[0].splits[0].stat.goalsAgainst || 0,
+                    gaa: seasonStats.stats[0].splits[0].stat.goalAgainstAverage.toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 }) || 0,
                     svp: seasonStats.stats[0].splits[0].stat.savePercentage.toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 4 }) || 0,
                     shutouts: seasonStats.stats[0].splits[0].stat.shutouts || 0,
                     toi: seasonStats.stats[0].splits[0].stat.timeOnIce || 0,
@@ -688,6 +694,7 @@ const Teams = () => {
                                         }
                                         <h1><b>{division.division.name + " Division"}</b></h1>
                                         <DataGrid
+                                            disableColumnMenu
                                             rows={prepareStandingsForDataGrid(division.teamRecords, standingsType)}
                                             columns={standingsCols}
                                             sortModel={[{
@@ -725,6 +732,7 @@ const Teams = () => {
                                                 <b>{division.conference.name + " Conference"}</b>
                                             </h1>
                                             <DataGrid
+                                                disableColumnMenu
                                                 rows={prepareStandingsForDataGrid(conference, standingsType)}
                                                 columns={standingsCols}
                                                 sortModel={[{
@@ -751,6 +759,7 @@ const Teams = () => {
                                 <b>{"League Standings"}</b>
                             </h1>
                             <DataGrid
+                                disableColumnMenu
                                 rows={prepareStandingsForDataGrid(standings, standingsType)}
                                 columns={standingsCols}
                                 sortModel={[{
@@ -849,7 +858,7 @@ const Teams = () => {
     }
 
     return (
-        <Box style={{ padding: "60px" }}>
+        <Box style={{ padding: "10px 60px 40px 60px" }}>
             {isLoading ? <Loading/> :
                 <>
                     {teamsList &&
@@ -926,6 +935,7 @@ const Teams = () => {
                                                 <br/>
                                                 <h1>Forwards</h1>
                                                 <DataGrid
+                                                    disableColumnMenu
                                                     rows={rows}
                                                     columns={columns}
                                                     onRowClick={(params) => {
@@ -943,6 +953,7 @@ const Teams = () => {
                                                 <br/>
                                                 <h1>Defensemen</h1>
                                                 <DataGrid
+                                                    disableColumnMenu
                                                     rows={defenseRows}
                                                     columns={columns}
                                                     onRowClick={(params) => {
@@ -960,6 +971,7 @@ const Teams = () => {
                                                 <br/>
                                                 <h1>Goaltenders</h1>
                                                 <DataGrid
+                                                    disableColumnMenu
                                                     rows={goalieRows}
                                                     columns={columns2}
                                                     onRowClick={(params) => {

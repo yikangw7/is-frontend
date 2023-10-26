@@ -144,9 +144,14 @@ export const columns2: GridColDef[] = [
         width: 60,
     },
     {
+        field: 'ga',
+        headerName: 'GA',
+        width: 60,
+    },
+    {
         field: 'gaa',
         headerName: 'GAA',
-        width: 60,
+        width: 80,
     },
     {
         field: 'svp',

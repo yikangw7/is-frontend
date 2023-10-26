@@ -102,7 +102,8 @@ const Profile = () => {
                         if (data.stats[0].splits[0].stat?.savePercentage ||
                             data.stats[0].splits[0].stat?.goalsAgainstAverage ||
                             data.stats[0].splits[0].stat?.goalsAgainst ||
-                            data.stats[0].splits[0].stat?.shotsAgainst) {
+                            data.stats[0].splits[0].stat?.shotsAgainst ||
+                            ! data.stats[0].splits[0].stat?.goals) {
                             
                             setIsGoalie(true);
                             setRowData(prepareGoalieForDataGrid(data.stats[0].splits, data2.stats[0].splits[0]));
@@ -378,7 +379,8 @@ const Profile = () => {
                     losses: rowData.stat.losses || 0,
                     ot: rowData.stat.ot || 0,
                     shotsAgainst: rowData.stat.shotsAgainst || 0,
-                    gaa: rowData.stat.goalsAgainstAverage || 0,
+                    ga: rowData.stat.goalsAgainst || 0,
+                    gaa: rowData.stat.goalAgainstAverage.toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 }) || 0,
                     svp: rowData.stat.savePercentage.toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 4 }) || 0,
                     shutouts: rowData.stat.shutouts || 0,
                     toi: rowData.stat.timeOnIce || 0,
@@ -397,7 +399,8 @@ const Profile = () => {
             losses: row2Data.stat.losses || 0,
             ot: row2Data.stat.ot || 0,
             shotsAgainst: row2Data.stat.shotsAgainst || 0,
-            gaa: row2Data.stat.goalsAgainstAverage || 0,
+            ga: row2Data.stat.goalsAgainst || 0,
+            gaa: row2Data.stat.goalAgainstAverage.toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 }) || 0,
             svp: row2Data.stat.savePercentage.toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 4 }) || 0,
             shutouts: row2Data.stat.shutouts || 0,
             toi: row2Data.stat.timeOnIce || 0,
@@ -453,7 +456,7 @@ const Profile = () => {
     return (
         <Box>
             {isLoading ? <Loading/> :
-            <Box style={{ padding: "60px" }}>
+            <Box style={{ padding: "20px 60px 40px 60px" }}>
                 <Grid container justifyContent="center">
                     <TextField 
                         label="Player Name" 
@@ -581,6 +584,7 @@ const Profile = () => {
                                 </Grid>
                                 {rowData &&
                                     <DataGrid
+                                        disableColumnMenu
                                         rows={rowData}
                                         columns={isGoalie ? columns2 : columns}
                                     />
