@@ -26,9 +26,11 @@ const Profile = () => {
     // Player Info State Variables
     const [currentPlayer, setCurrentPlayer] = useState<any>(null);
     const [masterList, setMasterList] = useState<any>(null);
+    const [teamsList, setTeamsList] = useState<any>(null);
     const [currentTeam, setCurrentTeam] = useState<any>(null);
     const [favourites, setFavourites] = useState<any>(null);
     const [isGoalie, setIsGoalie] = useState<boolean>(false);
+    const [isPlayoffs, setIsPlayoffs] = useState<boolean>(false);
 
     // Checkbox State Variables
     const [extraData, setExtraData] = useState<boolean>(false);
@@ -70,10 +72,12 @@ const Profile = () => {
             });
 
             // Get Year By Year Stats
-            fetch('https://statsapi.web.nhl.com/api/v1/people/' + currentPlayer.id + '/stats?stats=yearByYear', {
+            fetch('https://api-web.nhle.com/v1/player/' + currentPlayer.id + '/landing', {
             method: 'GET',
             })
             .then(response => {
+                console.log("E");
+                console.log(response);
                 // Check if the response status is OK (status code 200)
                 if (!response.ok) {
                 throw new Error('Network response was not ok');
@@ -82,42 +86,20 @@ const Profile = () => {
                 return response.json();
             })
             .then((data) => {
-                console.log(data.stats[0].splits);
-                // Get Career Stats
-                fetch('https://statsapi.web.nhl.com/api/v1/people/' + currentPlayer.id + '/stats?stats=careerRegularSeason', {
-                    method: 'GET',
-                    })
-                    .then(response => {
-                        // Check if the response status is OK (status code 200)
-                        if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                        }
-                        // Parse the response body as JSON
-                        return response.json();
-                    })
-                    .then((data2) => {
-                        setRow2Data(data2.stats[0].splits[0]);
-                        console.log("TSETES");
-                        console.log(data.stats[0].splits);
-                        if (data.stats[0].splits[0].stat?.savePercentage ||
-                            data.stats[0].splits[0].stat?.goalsAgainstAverage ||
-                            data.stats[0].splits[0].stat?.goalsAgainst ||
-                            data.stats[0].splits[0].stat?.shotsAgainst ||
-                            !data.stats[0].splits[0].stat?.points) {
-                            
-                            setIsGoalie(true);
-                            setRowData(prepareGoalieForDataGrid(data.stats[0].splits, data2.stats[0].splits[0]));
-                        }
-                        else {
-                            setIsGoalie(false);
-                            setRowData(prepareDataForDataGrid(data.stats[0].splits, data2.stats[0].splits[0]));
-                        }
-                    });
+                console.log(data);
+                if (data.position != "G") {
+                    setRowData(prepareDataForDataGrid(data.seasonTotals, data.featuredStats.regularSeason.career));
+                    setIsGoalie(false);
+                }
+                else {
+                    setRowData(prepareGoalieForDataGrid(data.seasonTotals, data.featuredStats.regularSeason.career));
+                    setIsGoalie(true);
+                }
             });
 
             // Get Team Information
             if (currentPlayer.currentTeamId) {
-                fetch('https://statsapi.web.nhl.com/api/v1/teams/' + currentPlayer.currentTeamId, {
+                fetch('https://api.nhle.com/stats/rest/en/team', {
                 method: 'GET',
                 })
                 .then(response => {
@@ -129,8 +111,14 @@ const Profile = () => {
                     return response.json();
                 })
                 .then((data) => {
-                    console.log(data.teams[0]);
-                    setCurrentTeam(data.teams[0]);
+                    console.log("TL:");
+                    console.log(data);
+                    console.log(currentPlayer.currentTeamId);
+                    data.data.filter((teamInfo: any) => {
+                        if (teamInfo.id === currentPlayer.currentTeamId) {
+                            setCurrentTeam(teamInfo);
+                        }
+                    })
                 });
             }
 
@@ -172,6 +160,32 @@ const Profile = () => {
         fetchData();
         console.log(playerList);
     }, []);
+
+   // Initialize Current Team
+   useEffect(() => { 
+    const fetchData = async () => {
+        setIsLoading(true);
+        fetch('https://api.nhle.com/stats/rest/en/team', {
+            method: 'GET',
+            })
+            .then(response => {
+                // Check if the response status is OK (status code 200)
+                if (!response.ok) {
+                throw new Error('Network response was not ok');
+                }
+                // Parse the response body as JSON
+                return response.json();
+            })
+            .then((data) => {
+                console.log("TL:");
+                console.log(data);
+                setTeamsList(data);
+            });
+        setIsLoading(false);
+    };
+    fetchData();
+    console.log(playerList);
+}, []);
 
     // Initialize page if player query is given
     useEffect(() => {
@@ -312,30 +326,32 @@ const Profile = () => {
     const prepareDataForDataGrid = (rows: any, row2Data: any) => {
         const newRows: any[] = [];
         rows.map((rowData: any) => {
-            if (extraData || !rowData.league || rowData.league.name === "National Hockey League") {
-                let singleRow = {
-                    id: rowData.season,
-                    season: rowData.season.substring(0, 4) + " - " + rowData.season.substring(4, 8),
-                    team: rowData.team.name,
-                    league: rowData.league.name === "National Hockey League" ? "NHL" : rowData.league.name,
-                    games: rowData.stat.games || 0,
-                    goals: rowData.stat.goals || 0,
-                    assists: rowData.stat.assists || 0,
-                    points: rowData.stat.points || 0,
-                    plusMinus: rowData.stat.plusMinus || 0,
-                    penaltyMins: rowData.stat.pim || 0,
-                    ppg: rowData.stat.powerPlayGoal || 0,
-                    ppp: rowData.stat.powerPlayPoints || 0,
-                    shg: rowData.stat.shortHandedGoals || 0,
-                    shp: rowData.stat.shortHandedPoints || 0,
-                    toig: rowData.stat.timeOnIce ? toTimeOnIce(rowData.stat.timeOnIce,  parseInt(rowData.stat.games)) : "-",
-                    gwg: rowData.stat.gameWinningGoals || 0,
-                    otg: rowData.stat.overTimeGoals || 0,
-                    shots: rowData.stat.shots,
-                    shotPercent: !rowData.stat.shots ? 0 : (rowData.stat.goals / rowData.stat.shots * 100).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) || 0,
-                    faceoffs: rowData.stat.faceOffPct || 0,
+            if (extraData || rowData.leagueAbbrev === "NHL") {
+                if ((extraData && !rowData.gameTypeId) || (isPlayoffs && rowData.gameTypeId === 3) || (!isPlayoffs && rowData.gameTypeId === 2)) {
+                    let singleRow = {
+                        id: rowData.season,
+                        season: (rowData.season + "").substring(0, 4) + " - " + (rowData.season + "").substring(4, 8),
+                        team: rowData.teamName.default,
+                        league: rowData.leagueAbbrev,
+                        games: rowData.gamesPlayed || 0,
+                        goals: rowData.goals || 0,
+                        assists: rowData.assists || 0,
+                        points: rowData.points || 0,
+                        plusMinus: rowData.plusMinus || 0,
+                        penaltyMins: rowData.pim || 0,
+                        ppg: rowData.powerPlayGoal || 0,
+                        ppp: rowData.powerPlayPoints || 0,
+                        shg: rowData.shorthandedGoals || 0,
+                        shp: rowData.shorthandedPoints || 0,
+                        toig: rowData.avgToi || "-",
+                        gwg: rowData.gameWinningGoals || 0,
+                        otg: rowData.otGoals || 0,
+                        shots: rowData.shots,
+                        shotPercent: !rowData.shots ? 0 : (rowData.goals / rowData.shots * 100).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) || 0,
+                        faceoffs: rowData.faceoffWinningPct || 0,
+                    }
+                    newRows.push(singleRow);
                 }
-                newRows.push(singleRow);
             }
         })
         let careerTotals = {
@@ -343,22 +359,22 @@ const Profile = () => {
             season: "Career Totals",
             team: "TOT",
             league: "NHL",
-            games: row2Data?.stat?.games || 0,
-            goals: row2Data?.stat?.goals || 0,
-            assists: row2Data?.stat?.assists || 0,
-            points: row2Data?.stat?.points || 0,
-            plusMinus: row2Data?.stat?.plusMinus || 0,
-            penaltyMins: row2Data?.stat?.pim || 0,
-            ppg: row2Data?.stat?.powerPlayGoals || 0,
-            ppp: row2Data?.stat?.powerPlayPoints || 0,
-            shg: row2Data?.stat?.shortHandedGoals || 0,
-            shp: row2Data?.stat?.shortHandedPoints || 0,
-            toig: toTimeOnIce(row2Data?.stat?.timeOnIce,  parseInt(row2Data?.stat?.games)) || 0,
-            gwg: row2Data?.stat?.gameWinningGoals || 0,
-            otg: row2Data?.stat?.overTimeGoals || 0,
-            shots: row2Data?.stat?.shots || 0,
-            shotPercent: (row2Data?.stat?.goals / row2Data?.stat?.shots * 100).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) || 0,
-            faceoffs: row2Data?.stat?.faceOffPct || 0,
+            games: row2Data?.gamesPlayed || 0,
+            goals: row2Data?.goals || 0,
+            assists: row2Data?.assists || 0,
+            points: row2Data?.points || 0,
+            plusMinus: row2Data?.plusMinus || 0,
+            penaltyMins: row2Data?.pim || 0,
+            ppg: row2Data?.powerPlayGoals || 0,
+            ppp: row2Data?.powerPlayPoints || 0,
+            shg: row2Data?.shorthandedGoals || 0,
+            shp: row2Data?.shorthandedPoints || 0,
+            toig: row2Data?.avgToi || 0,
+            gwg: row2Data?.gameWinningGoals || 0,
+            otg: row2Data?.overTimeGoals || 0,
+            shots: row2Data?.shots || 0,
+            shotPercent: (row2Data?.goals / row2Data?.shots * 100).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) || 0,
+            faceoffs: row2Data?.faceoffWinningPct || 0,
         }
         newRows.push(careerTotals);
         return newRows;
@@ -367,25 +383,27 @@ const Profile = () => {
     const prepareGoalieForDataGrid = (rows: any, row2Data: any) => {
         const newRows: any[] = [];
         rows.map((rowData: any) => {
-            if (extraData || !rowData.league || rowData.league.name === "National Hockey League") {
-                let singleRow = {
-                    id: rowData.season,
-                    season: rowData.season.substring(0, 4) + " - " + rowData.season.substring(4, 8),
-                    team: rowData.team.name,
-                    league: rowData.league.name === "National Hockey League" ? "NHL" : rowData.league.name,
-                    games: rowData.stat.games || 0,
-                    gamesStarted: rowData.stat.gamesStarted || 0,
-                    wins: rowData.stat.wins || 0,
-                    losses: rowData.stat.losses || 0,
-                    ot: rowData.stat.ot || 0,
-                    shotsAgainst: rowData.stat.shotsAgainst || 0,
-                    ga: rowData.stat.goalsAgainst || 0,
-                    gaa: rowData.stat.goalAgainstAverage.toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 }) || 0,
-                    svp: rowData.stat.savePercentage.toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 4 }) || 0,
-                    shutouts: rowData.stat.shutouts || 0,
-                    toi: rowData.stat.timeOnIce || 0,
+            if (extraData || rowData.leagueAbbrev === "NHL") {
+                if ((extraData && !rowData.gameTypeId) || (isPlayoffs && rowData.gameTypeId === 3) || (!isPlayoffs && rowData.gameTypeId === 2)) {
+                    let singleRow = {
+                        id: rowData.season,
+                        season: (rowData.season + "").substring(0, 4) + " - " + (rowData.season + "").substring(4, 8),
+                        team: rowData.teamName.default,
+                        league: rowData.leagueAbbrev,
+                        games: rowData.gamesPlayed || 0,
+                        gamesStarted: rowData.gamesStarted || 0,
+                        wins: rowData.wins || 0,
+                        losses: rowData.losses || 0,
+                        ot: rowData.otLosses || 0,
+                        shotsAgainst: rowData.shotsAgainst || 0,
+                        ga: rowData.goalsAgainst || 0,
+                        gaa: rowData.goalsAgainstAvg?.toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 }) || 0,
+                        svp: rowData.savePctg?.toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 4 }) || 0,
+                        shutouts: rowData.shutouts || 0,
+                        toi: rowData.timeOnIce || 0,
+                    }
+                    newRows.push(singleRow);
                 }
-                newRows.push(singleRow);
             }
         })
         let careerTotals = {
@@ -393,17 +411,17 @@ const Profile = () => {
             season: "Career Totals",
             team: "TOT",
             league: "NHL",
-            games: row2Data.stat.games || 0,
-            gamesStarted: row2Data.stat.gamesStarted || 0,
-            wins: row2Data.stat.wins || 0,
-            losses: row2Data.stat.losses || 0,
-            ot: row2Data.stat.ot || 0,
-            shotsAgainst: row2Data.stat.shotsAgainst || 0,
-            ga: row2Data.stat.goalsAgainst || 0,
-            gaa: row2Data.stat.goalAgainstAverage.toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 }) || 0,
-            svp: row2Data.stat.savePercentage.toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 4 }) || 0,
-            shutouts: row2Data.stat.shutouts || 0,
-            toi: row2Data.stat.timeOnIce || 0,
+            games: row2Data.gamesPlayed || 0,
+            gamesStarted: row2Data.gamesStarted || 0,
+            wins: row2Data.wins || 0,
+            losses: row2Data.losses || 0,
+            ot: row2Data.otLosses || 0,
+            shotsAgainst: row2Data.shotsAgainst || 0,
+            ga: row2Data.goalsAgainst || 0,
+            gaa: row2Data.goalsAgainstAvg?.toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 }) || 0,
+            svp: row2Data.savePctg?.toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 4 }) || 0,
+            shutouts: row2Data.shutouts || 0,
+            toi: row2Data.timeOnIce || 0,
         }
         newRows.push(careerTotals);
         return newRows;
@@ -529,10 +547,10 @@ const Profile = () => {
                                                 <Button onClick={()=>{
                                                     router.push({
                                                         pathname: '/teams',
-                                                        query: { team: currentTeam.name },
+                                                        query: { team: currentTeam.fullName },
                                                     });
                                                 }}>
-                                                    {currentTeam.name}
+                                                    {currentTeam.fullName}
                                                 </Button> 
                                                 {" #" + currentPlayer.sweaterNumber}
                                             </Typography>) :

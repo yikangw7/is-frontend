@@ -9,6 +9,8 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 import Loading from "./loading";
 
+import { atlantic, metro, central, pacific } from "../constants/teams";
+
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import "./styles/teams.styles.css";
@@ -333,7 +335,7 @@ const Teams = () => {
         const fetchData = async () => {
             setIsLoading(true);
             try {
-                const response = await fetch('https://statsapi.web.nhl.com/api/v1/teams');
+                const response = await fetch('https://api.nhle.com/stats/rest/en/team');
                 if (!response.ok) {
                     throw new Error(`Failed to fetch: ${response.status} - ${response.statusText}`);
                 }     
@@ -363,7 +365,7 @@ const Teams = () => {
         const fetchData = async () => {
             setIsLoading(true);
             try {
-                const response = await fetch('https://statsapi.web.nhl.com/api/v1/standings');
+                const response = await fetch('https://api-web.nhle.com/v1/standings/now');
                 if (!response.ok) {
                     throw new Error(`Failed to fetch: ${response.status} - ${response.statusText}`);
                 }     
@@ -788,7 +790,7 @@ const Teams = () => {
 
         if (teamsList) {
             console.log(teamsList);
-            for (let i = 0; i < 32; i++) {
+            for (let i = 0; i < 59; i++) {
                 const teamDisplayRow = (
                     <Grid container>
                         <Grid item xs={2}>
@@ -798,23 +800,25 @@ const Teams = () => {
                                     height: 40,
                                     width: 40,
                                 }}
-                                src={"https://assets.nhle.com/logos/nhl/svg/" + teamsList.teams[i].abbreviation + "_light.svg"}
+                                src={"https://assets.nhle.com/logos/nhl/svg/" + teamsList.data[i].triCode + "_light.svg"}
                             />
                         </Grid>
                         <Grid item xs={10}>
                             <Button onClick={() => {
                                 router.push({
                                     pathname: '/teams',
-                                    query: { team: teamsList.teams[i].name },
+                                    query: { team: teamsList.data[i].fullName },
                                 });
-                            }}>{teamsList.teams[i].name}</Button>
+                            }}>{teamsList.data[i].fullName}</Button>
                         </Grid>
                     </Grid>
                 );
-                if (teamsList.teams[i].division.name === "Metropolitan") metroDisplay.push(teamDisplayRow);
-                else if (teamsList.teams[i].division.name === "Atlantic") atlanticDisplay.push(teamDisplayRow);
-                else if (teamsList.teams[i].division.name === "Central") centralDisplay.push(teamDisplayRow);
-                else if (teamsList.teams[i].division.name === "Pacific") pacificDisplay.push(teamDisplayRow);
+                console.log(metro);
+                console.log(teamsList.data[i].fullName);
+                if (metro.includes(teamsList.data[i].fullName)) metroDisplay.push(teamDisplayRow);
+                else if (atlantic.includes(teamsList.data[i].fullName)) atlanticDisplay.push(teamDisplayRow);
+                else if (central.includes(teamsList.data[i].fullName)) centralDisplay.push(teamDisplayRow);
+                else if (pacific.includes(teamsList.data[i].fullName)) pacificDisplay.push(teamDisplayRow);
             }
         }
 
