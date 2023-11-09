@@ -7,6 +7,8 @@ import { Button, TextField, Checkbox, Box, Grid, Typography, Popover } from '@mu
 import InputAdornment from '@mui/material/InputAdornment';
 import IconButton from '@mui/material/IconButton';
 import SearchIcon from '@mui/icons-material/Search';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useState, useEffect, ChangeEvent } from 'react';
@@ -35,6 +37,7 @@ const Profile = () => {
     // Checkbox State Variables
     const [extraData, setExtraData] = useState<boolean>(false);
     const [isFavourite, setIsFavourite] = useState<boolean>(false);
+    const [alignment, setAlignment] = useState('left');
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -124,7 +127,7 @@ const Profile = () => {
 
             setIsLoading(false);
         }
-    }, [currentPlayer, extraData])
+    }, [currentPlayer, extraData, isPlayoffs])
 
     let playerList: any;
 
@@ -311,18 +314,6 @@ const Profile = () => {
         }
     }
 
-    const toTimeOnIce = (timeString: string, games: number) => {
-        if (timeString) {
-            const [minutes, seconds] = timeString.split(':').map(Number);
-            const timeInSeconds = (minutes * 60 + seconds) / games;
-            const minutesPerGame = Math.floor(timeInSeconds / 60);
-            const secondsPerGame = timeInSeconds % 60;
-            console.log(`${minutesPerGame}:${secondsPerGame.toString().padStart(2, '0')}`);
-            return `${minutesPerGame}:${Math.round(secondsPerGame).toString().padStart(2, '0')}`;
-        }
-        else return "-";
-    }
-
     const prepareDataForDataGrid = (rows: any, row2Data: any) => {
         const newRows: any[] = [];
         rows.map((rowData: any) => {
@@ -376,7 +367,7 @@ const Profile = () => {
             shotPercent: (row2Data?.goals / row2Data?.shots * 100).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) || 0,
             faceoffs: row2Data?.faceoffWinningPct || 0,
         }
-        newRows.push(careerTotals);
+        if (!isPlayoffs) newRows.push(careerTotals);
         return newRows;
     }
 
@@ -423,7 +414,7 @@ const Profile = () => {
             shutouts: row2Data.shutouts || 0,
             toi: row2Data.timeOnIce || 0,
         }
-        newRows.push(careerTotals);
+        if (!isPlayoffs) newRows.push(careerTotals);
         return newRows;
     }
 
@@ -471,6 +462,22 @@ const Profile = () => {
         );
     }
 
+    const handleToggleChange = (
+        event: React.MouseEvent<HTMLElement>,
+        newAlignment: string,
+      ) => {
+        if(newAlignment === "left") setIsPlayoffs(false);
+        else setIsPlayoffs(true);
+        setAlignment(newAlignment);
+        console.log(isPlayoffs);
+      };
+
+    const control = {
+        value: alignment,
+        onChange: handleToggleChange,
+        exclusive: true,
+    };
+    
     return (
         <Box>
             {isLoading ? <Loading/> :
@@ -597,6 +604,10 @@ const Profile = () => {
                                                 {"Set As Favourite"}
                                             </Box>
                                         }
+                                        <ToggleButtonGroup size="small" {...control} aria-label="Small sizes">
+                                            <ToggleButton value="left" key="left">Regular Season</ToggleButton>
+                                            <ToggleButton value="right" key="right">Playoffs</ToggleButton>
+                                        </ToggleButtonGroup>
                                     </Grid>
                                     <br/>
                                 </Grid>
