@@ -36,6 +36,9 @@ const Teams = () => {
     const router = useRouter();
     const teamProp = router.query;
 
+    const conferences = ["Eastern", "Western"];
+    const divisions = ["Atlantic", "Metropolitan", "Central", "Pacific"];
+
     
     const columns: GridColDef[] = [
         {
@@ -247,9 +250,9 @@ const Teams = () => {
             width: 50,
             renderCell: (params) => (
                 <>
-                    {teamsList.teams.map((team: any) => {
-                        if (team.id === params.row.id) return (
-                            <img src={"https://assets.nhle.com/logos/nhl/svg/" + team.abbreviation + "_light.svg"} style={{ width: '100%', height: 'auto' }} />
+                    {teamsList.data.map((team: any) => {
+                        if (team.rawTricode === params.row.id) return (
+                            <img src={"https://assets.nhle.com/logos/nhl/svg/" + team.rawTricode + "_light.svg"} style={{ width: '100%', height: 'auto' }} />
                         );
                     })} 
                 </>
@@ -352,6 +355,8 @@ const Teams = () => {
                     result += new TextDecoder('utf-8').decode(chunk?.value);
                 }
                 setTeamsList(JSON.parse(result));
+                console.log("TL:");
+                console.log(teamsList);
             } catch (error) {
                 console.error('Error reading the JSON file:', error);
             }
@@ -381,15 +386,10 @@ const Teams = () => {
                     }
                     result += new TextDecoder('utf-8').decode(chunk?.value);
                 }
-                const leagueStandings: any[] = [];
-                const divisionalStandings = JSON.parse(result);
-                divisionalStandings.records.map((division: any) => {
-                    division.teamRecords.map((team: any) => {
-                        leagueStandings.push(team);
-                    })
-                })
-                setStandings(leagueStandings);
-                setSortedStandings(divisionalStandings.records);
+                const leagueStandings = JSON.parse(result);
+                console.log("Standings:");
+                console.log(leagueStandings);
+                setStandings(leagueStandings.standings);
             } catch (error) {
                 console.error('Error reading the JSON file:', error);
             }
@@ -399,9 +399,15 @@ const Teams = () => {
     }, []);
 
     useEffect(() => {
+        console.log("TeamsList");
+        console.log(teamsList);
+    }, [teamsList]);
+
+    useEffect(() => {
         console.log("standings");
         console.log(standings);
     }, [standings])
+
     useEffect(() => {
         const fetchData = async () => {
             setIsLoading(true);
@@ -476,9 +482,7 @@ const Teams = () => {
     // Initialize page if team query is given
     useEffect(() => {
         if (teamProp.team && teamsList) {
-            searchList(teamProp.team as string);
-            console.log(currentTeam);
-            
+            searchList(teamProp.team as string); 
         }
         else {
             setCurrentTeam(null);
@@ -622,20 +626,20 @@ const Teams = () => {
         const newRows: any[] = [];
         rows.map((rowData: any) => {
             let singleRow = {
-                id: rowData.team.id,
-                rank: parseInt(standingsType === 0 ? rowData.divisionRank : (standingsType === 1 ? rowData.conferenceRank : rowData.leagueRank)),
-                name: rowData.team.name,
+                id: rowData.teamAbbrev.default,
+                rank: parseInt(standingsType === 0 ? rowData.divisionSequence : (standingsType === 1 ? rowData.conferenceSequence : rowData.leagueSequence)),
+                name: rowData.teamName.default,
                 games: parseInt(rowData.gamesPlayed),
-                wins: rowData.leagueRecord.wins,
-                losses: rowData.leagueRecord.losses,
-                ot: rowData.leagueRecord.ot,
+                wins: rowData.wins,
+                losses: rowData.losses,
+                ot: rowData.otLosses,
                 pts: rowData.points,
-                ptspct: parseFloat(rowData.pointsPercentage).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 }),
+                ptspct: parseFloat(rowData.pointPctg).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 }),
                 rw: rowData.regulationWins,
-                gf: rowData.goalsScored,
-                ga: rowData.goalsAgainst,
-                diff: parseInt(rowData.goalsScored) - parseInt(rowData.goalsAgainst),
-                streak: rowData.streak.streakCode,
+                gf: rowData.goalFor,
+                ga: rowData.goalAgainst,
+                diff: parseInt(rowData.goalFor) - parseInt(rowData.goalAgainst),
+                streak: rowData.streakCount + rowData.streakCode,
             }
             newRows.push(singleRow);
         })
@@ -680,24 +684,30 @@ const Teams = () => {
                 >
                     {standingsType === 0 &&
                         <Box className="data-grid-container">
-                            {sortedStandings.map((division: any, index: number) => {
+                            {divisions.map((division: any, index: number) => {
+                                const teamsArr: any[] = [];
+                                standings.map((team: any) => {
+                                    if (team.divisionName === division) {
+                                        teamsArr.push(team);
+                                    }
+                                })
                                 return (
                                     <Box>
-                                        {index % 2 === 0 && 
+                                        {index % 2 === 0 &&
                                             <Box style={{ padding: "25px" }}
                                                 display="flex"
                                                 justifyContent="center"
                                                 alignItems="center"
                                             >
                                                 <h1>
-                                                    <b>{division.conference.name + " Conference"}</b>
+                                                    <b>{(index <= 2 ? "Eastern" : "Western") + " Conference"}</b>
                                                 </h1>
                                             </Box>
                                         }
-                                        <h1><b>{division.division.name + " Division"}</b></h1>
+                                        <h1><b>{division + " Division"}</b></h1>
                                         <DataGrid
                                             disableColumnMenu
-                                            rows={prepareStandingsForDataGrid(division.teamRecords, standingsType)}
+                                            rows={prepareStandingsForDataGrid(teamsArr, standingsType)}
                                             columns={standingsCols}
                                             sortModel={[{
                                                 field: "rank",
@@ -718,24 +728,21 @@ const Teams = () => {
                     }
                     {standingsType === 1 &&
                         <Box className="data-grid-container">
-                            {sortedStandings.map((division: any, index: number) => {
-                                // Combine divisions to make conference
-                                if (index % 2 === 0) {
-                                    const conference: any[] = [];
-                                    sortedStandings[index].teamRecords.map((team: any) => {
-                                        conference.push(team);
-                                    })
-                                    sortedStandings[index + 1].teamRecords.map((team: any) => {
-                                        conference.push(team);
+                            {conferences.map((conf: any, index: number) => {
+                                    const teamsArr: any[] = [];
+                                    standings.map((team: any) => {
+                                        if (team.conferenceName === conf) {
+                                            teamsArr.push(team);
+                                        }
                                     })
                                     return (
                                         <Box>
                                             <h1>
-                                                <b>{division.conference.name + " Conference"}</b>
+                                                <b>{conf + " Conference"}</b>
                                             </h1>
                                             <DataGrid
                                                 disableColumnMenu
-                                                rows={prepareStandingsForDataGrid(conference, standingsType)}
+                                                rows={prepareStandingsForDataGrid(teamsArr, standingsType)}
                                                 columns={standingsCols}
                                                 sortModel={[{
                                                     field: "rank",
@@ -751,7 +758,7 @@ const Teams = () => {
                                             <br/>
                                         </Box>
                                     )
-                                }
+                                
                             })}
                         </Box>
                     }
@@ -813,8 +820,6 @@ const Teams = () => {
                         </Grid>
                     </Grid>
                 );
-                console.log(metro);
-                console.log(teamsList.data[i].fullName);
                 if (metro.includes(teamsList.data[i].fullName)) metroDisplay.push(teamDisplayRow);
                 else if (atlantic.includes(teamsList.data[i].fullName)) atlanticDisplay.push(teamDisplayRow);
                 else if (central.includes(teamsList.data[i].fullName)) centralDisplay.push(teamDisplayRow);
