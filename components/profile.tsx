@@ -33,6 +33,7 @@ const Profile = () => {
     const [favourites, setFavourites] = useState<any>(null);
     const [isGoalie, setIsGoalie] = useState<boolean>(false);
     const [isPlayoffs, setIsPlayoffs] = useState<boolean>(false);
+    const [featuredStats, setFeaturedStats] = useState<any>(false);
 
     // Checkbox State Variables
     const [extraData, setExtraData] = useState<boolean>(false);
@@ -91,11 +92,13 @@ const Profile = () => {
             .then((data) => {
                 console.log(data);
                 if (data.position != "G") {
-                    setRowData(prepareDataForDataGrid(data.seasonTotals, data.featuredStats.regularSeason.career));
+                    setRowData(prepareDataForDataGrid(data.seasonTotals, data.careerTotals.regularSeason));
+                    setFeaturedStats(data.featuredStats);
                     setIsGoalie(false);
                 }
                 else {
-                    setRowData(prepareGoalieForDataGrid(data.seasonTotals, data.featuredStats.regularSeason.career));
+                    setRowData(prepareGoalieForDataGrid(data.seasonTotals, data.careerTotals.regularSeason));
+                    setFeaturedStats(data.featuredStats);
                     setIsGoalie(true);
                 }
             });
@@ -339,7 +342,7 @@ const Profile = () => {
                         otg: rowData.otGoals || 0,
                         shots: rowData.shots,
                         shotPercent: !rowData.shots ? 0 : (rowData.goals / rowData.shots * 100).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) || 0,
-                        faceoffs: rowData.faceoffWinningPct || 0,
+                        faceoffs: (rowData.faceoffWinningPctg * 100).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) || 0,
                     }
                     newRows.push(singleRow);
                 }
@@ -350,22 +353,22 @@ const Profile = () => {
             season: "Career Totals",
             team: "TOT",
             league: "NHL",
-            games: row2Data?.gamesPlayed || 0,
-            goals: row2Data?.goals || 0,
-            assists: row2Data?.assists || 0,
-            points: row2Data?.points || 0,
-            plusMinus: row2Data?.plusMinus || 0,
-            penaltyMins: row2Data?.pim || 0,
-            ppg: row2Data?.powerPlayGoals || 0,
-            ppp: row2Data?.powerPlayPoints || 0,
+            games: row2Data?.gamesPlayed || "-",
+            goals: row2Data?.goals || "-",
+            assists: row2Data?.assists || "-",
+            points: row2Data?.points || "-",
+            plusMinus: row2Data?.plusMinus || "-",
+            penaltyMins: row2Data?.pim || "-",
+            ppg: row2Data?.powerPlayGoals || "-",
+            ppp: row2Data?.powerPlayPoints || "-",
             shg: row2Data?.shorthandedGoals || 0,
             shp: row2Data?.shorthandedPoints || 0,
-            toig: row2Data?.avgToi || 0,
-            gwg: row2Data?.gameWinningGoals || 0,
-            otg: row2Data?.overTimeGoals || 0,
-            shots: row2Data?.shots || 0,
-            shotPercent: (row2Data?.goals / row2Data?.shots * 100).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) || 0,
-            faceoffs: row2Data?.faceoffWinningPct || 0,
+            toig: row2Data?.avgToi || "-",
+            gwg: row2Data?.gameWinningGoals || "-",
+            otg: row2Data?.otGoals || "-",
+            shots: row2Data?.shots || "-",
+            shotPercent: (row2Data?.goals / row2Data?.shots * 100).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) || "-",
+            faceoffs: (row2Data?.faceoffWinningPctg * 100).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) || "-",
         }
         if (!isPlayoffs) newRows.push(careerTotals);
         return newRows;
@@ -548,7 +551,7 @@ const Profile = () => {
                                         {currentPlayer.fullName + "\n"}
                                         {isGoalie && "Goaltender"}
                                     </Grid>
-                                    <Grid item xs={4}>
+                                    <Grid item xs={3}>
                                         {currentPlayer.sweaterNumber ? (!currentTeam ? "No Team" : 
                                             <Typography>
                                                 <Button onClick={()=>{
@@ -593,7 +596,21 @@ const Profile = () => {
                                             {"Shoots " + currentPlayer.shootsCatches}
                                         </Typography>
                                     </Grid>
-                                    <Grid item xs={4} justifyContent="flex-end">
+                                    <Grid item xs={3} justifyContent="flex-end">
+                                        {featuredStats &&
+                                            <Box border={0.5} style={{ padding: "5px", marginBottom: "10px", borderRadius: "5px" }}>
+                                                <Typography><b>Current Season</b></Typography>
+                                                <Typography>{featuredStats.regularSeason.subSeason.gamesPlayed}GP {featuredStats.regularSeason.subSeason.goals}G {featuredStats.regularSeason.subSeason.assists}A {featuredStats.regularSeason.subSeason.points}P</Typography>
+                                            </Box>
+                                        }
+                                        {featuredStats &&
+                                            <Box border={0.5} style={{ padding: "5px", borderRadius: "5px" }}>
+                                                <Typography><b>Career Totals</b></Typography>
+                                                <Typography>{featuredStats.regularSeason.career.gamesPlayed}GP {featuredStats.regularSeason.career.goals}G {featuredStats.regularSeason.career.assists}A {featuredStats.regularSeason.career.points}P</Typography>
+                                            </Box>
+                                        }
+                                    </Grid>
+                                    <Grid item xs={3} justifyContent="flex-end">
                                         <Box>
                                             <Checkbox checked={extraData} onChange={handleCheckboxChange}/>
                                             {"Show Extra Data"}
@@ -604,10 +621,22 @@ const Profile = () => {
                                                 {"Set As Favourite"}
                                             </Box>
                                         }
-                                        <ToggleButtonGroup size="small" {...control} aria-label="Small sizes">
-                                            <ToggleButton value="left" key="left">Regular Season</ToggleButton>
-                                            <ToggleButton value="right" key="right">Playoffs</ToggleButton>
-                                        </ToggleButtonGroup>
+                                    </Grid>
+                                    <Grid item xs={2} justifyContent="flex-end">
+                                        <Box 
+                                            display="flex"
+                                            flexDirection="column"
+                                            justifyContent="space-between"
+                                        >
+                                            <br/>
+                                            <br/>
+                                            <br/>
+                                            <br/>
+                                            <ToggleButtonGroup size="small" {...control}>
+                                                <ToggleButton value="left" key="left">Regular Season</ToggleButton>
+                                                <ToggleButton value="right" key="right">Playoffs</ToggleButton>
+                                            </ToggleButtonGroup>
+                                        </Box>
                                     </Grid>
                                     <br/>
                                 </Grid>
