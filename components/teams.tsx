@@ -700,7 +700,7 @@ const Teams = () => {
                                                 alignItems="center"
                                             >
                                                 <h1>
-                                                    <b>{(index <= 2 ? "Eastern" : "Western") + " Conference"}</b>
+                                                    <b>{(index < 2 ? "Eastern" : "Western") + " Conference"}</b>
                                                 </h1>
                                             </Box>
                                         }
