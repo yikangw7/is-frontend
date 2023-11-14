@@ -423,7 +423,7 @@ const Profile = () => {
 
     const favouritesColumn = () => {
         const favouritesDisplay: JSX.Element[] = [];
-        favourites.map((favourite: any) => {
+        favourites?.map((favourite: any) => {
             let player: any;
             for (let key in masterList.data) {
                 if (masterList.data.hasOwnProperty(key)){
@@ -519,7 +519,7 @@ const Profile = () => {
 
                 {!currentPlayer && masterList &&
                     <Grid container justifyContent="center">
-                        {favourites.length > 0 ?
+                        {favourites?.length > 0 ?
                             <Box>
                                 <h1 style={{ marginBottom: "10px" }}>Your Favourites</h1>
                                 {favouritesColumn()}
@@ -650,7 +650,7 @@ const Profile = () => {
                             </Box>
                         </Grid>
                         <Grid item xs={2}>
-                            {favourites.length > 0 ?
+                            {favourites?.length > 0 ?
                                 <Box style={{ marginLeft: "20px" }}>
                                     <h1 style={{ marginBottom: "10px" }}>Your Favourites</h1>
                                     {favouritesColumn()}
